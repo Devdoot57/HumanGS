@@ -1,0 +1,23 @@
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+torch==2.12.1+cu130
+torchvision==0.27.1+cu130
+xformers==0.0.35
+transformers==5.12.1
+
+pyrender==0.1.45
+trimesh==4.12.2
+smplx==0.1.28
+
+opencv-python==5.0.0.93
+scikit-image==0.26.0
+lpips==0.1.4
+einops==0.8.2
+jaxtyping==0.3.11
+easydict==1.13
+omegaconf==2.3.1
+
+# Logging
+wandb==0.28.0
+rich==15.0.0
+tqdm==4.68.3

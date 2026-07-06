@@ -1,0 +1,109 @@
+model:
+  class_name: model.HumanGS.HumanGS
+  smpl_model_path: ./body_models/smplx/SMPLX_NEUTRAL.npz
+
+  image_tokenizer:
+    image_size: 512
+    patch_size: 8
+    in_channels: 57 # 3(RGB) + 6(Plucker) + 48(NeuralTexture)
+
+  transformer:
+    d: 768
+    d_head: 64
+    n_layer: 12
+    special_init: true
+    depth_init: true
+    use_qk_norm: true
+    use_cls_token: true
+    use_upsampler: true
+    project_all_vertices: true
+  
+  neural_texture:
+    resolution: 128
+    dim: 16
+
+  # Decoder settings
+  vertex_decoder:
+    hidden_dim: 256
+    num_tight_gaussians: 1
+    num_free_gaussians: 4
+    learnable_lbs_weights: false
+    
+  # Renderer settings
+  renderer:
+    white_background: true
+
+training:
+  use_canonical_maps: false
+
+  amp_dtype: bf16
+  api_key_path: ./configs/api_keys.yaml
+  batch_size_per_gpu: 2 
+  beta1: 0.9
+  beta2: 0.95
+  allowed_gradnorm_factor: 100
+  center_crop: true
+  scene_scale_factor: 1.35
+  target_height: 1.80
+  checkpoint_dir: ./experiments/checkpoints/HumanGS
+  checkpoint_every: 2000
+  reset_training_state: false
+
+  dataset_name: data.dataset_human.HumanGSDataset
+  # Pointing to the JSON
+  train_dataset_path: ./preprocessed_data/thuman21/train.json
+  test_dataset_path: ./preprocessed_data/thuman21/test.json
+
+  grad_accum_steps: 1
+  grad_checkpoint_every: 1
+  grad_clip_norm: 1.0
+
+  # Loss Weights
+  l2_loss_weight: 1.0
+  lpips_loss_weight: 0.1
+  tightness_loss_weight: 0.1
+  perceptual_loss_weight: 1.0
+
+  lr: 0.0004
+  train_steps: 100000
+
+  num_input_views: 4
+  num_target_views: 4
+  num_threads: 8
+  num_views: 8
+  num_workers: 4
+  prefetch_factor: 32
+  print_every: 20
+
+  square_crop: true
+  target_has_input: false
+  use_amp: true
+  use_rel_pose: false
+  use_tf32: true
+
+  mask_background: false
+  background_threshold: 0.90
+
+  view_selector:
+    max_frame_dist: 192
+    min_frame_dist: 25
+  vis_every: 100
+
+  use_wandb: true
+  wandb_exp_name: HumanGS_training
+  wandb_log_every: 50
+  
+  wandb_project: pedestrians
+  warmup: 3000
+  weight_decay: 0.05
+
+inference:
+  if_inference: False
+  compute_metrics: True
+  view_idx_file_path: ./preprocessed_data/thuman21/fixed_eval_views_thuman21_4.json
+  render_video: False
+
+  grid_eval: False
+  grid_size: 64
+  grid_stride: 32
+  grid_threshold: 0.3
