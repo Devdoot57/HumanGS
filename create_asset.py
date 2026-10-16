@@ -6,6 +6,7 @@ import argparse
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from setup import init_config, init_distributed
+from utils.ply_io_utils import save_gaussians_ply
 
 
 def main():
@@ -72,6 +73,9 @@ def main():
     elif isinstance(scene_name, list):
         scene_name = str(scene_name[0])
 
+    if ddp_info.is_main_process:
+        print(f"Creating asset for subject: {scene_name}...")
+
     # Define AMP Type
     amp_dtype_mapping = {
         "fp16": torch.float16, 
@@ -85,9 +89,9 @@ def main():
         asset = model.module.predict_canonical_asset(batch)
 
     if ddp_info.is_main_process:
-        save_path = os.path.join(args.save_dir, f"{scene_name}_asset.pt")
+        save_path = os.path.join(args.save_dir, f"{scene_name}_asset.ply")
         save_dict = {k: v.squeeze(0).float().cpu() for k, v in asset.items()}
-        torch.save(save_dict, save_path)
+        save_gaussians_ply(save_dict, save_path)
 
         print(f"Asset saved to {save_path}")
         print(f"Num Gaussians: {save_dict['means3D'].shape[0]}")

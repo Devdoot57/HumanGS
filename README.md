@@ -95,3 +95,49 @@ To run inference and evaluate the model on the generated test splits, execute th
 ```bash
 bash eval.sh
 ```
+
+## 6. Asset Creation, Visualization & Animation
+
+HumanGS predicts a canonical, animatable 3D Gaussian asset from input images in a single forward pass. The asset is saved as a standard `.ply` file, so it can also be opened in common 3DGS viewers.
+
+### 6.1 Create a Canonical Asset
+
+`create_asset.py` loads the trained checkpoint, takes one subject from the dataset, and saves its canonical Gaussians.
+
+```bash
+python create_asset.py --config configs/HumanGS_config.yaml --save_dir ./assets --subject_idx 27
+```
+
+The asset is written to `<save_dir>/<scene_name>_asset.ply`. The model, dataset, and checkpoint path are read from the same config used for training and evaluation.
+
+### 6.2 Visualize an Asset
+
+`visualize_asset.py` renders a 360° turntable video of a canonical asset.
+
+```bash
+python visualize_asset.py --asset_path ./assets/<scene_name>_asset.ply --output_video canonical_spin.mp4
+```
+
+### 6.3 Animate an Asset
+
+`animate.py` animates a canonical asset with an SMPL-X motion sequence using linear blend skinning (LBS). The asset is retargeted to the motion skeleton, so any asset can be driven by any motion sequence.
+
+**Default motion source:** by default, the motion is taken from the **`subject00`** sequence of the [THuman4.0](https://github.com/ZhengZerong/THuman4.0-Dataset) dataset. To use it, download THuman4.0 and make sure `subject00/smpl_params.npz` exists:
+
+```text
+HumanGS/
+└── datasets/
+    └── THuman4.0/
+        └── subject00/
+            └── smpl_params.npz
+```
+
+```bash
+python animate.py \
+    --asset_path ./assets/<scene_name>_asset.ply \
+    --raw_data_root ./datasets/THuman4.0 \
+    --motion_subject subject00 \
+    --output_video thuman4_animation.mp4
+```
+
+To drive the asset with a different subject's motion, change `--motion_subject` (e.g. `subject01`).

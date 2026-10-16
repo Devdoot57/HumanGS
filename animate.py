@@ -6,11 +6,14 @@ import cv2
 import argparse
 import math
 from tqdm import tqdm
+
 import torch.nn.functional as F
 from smplx.lbs import batch_rodrigues
 import smplx
 from model.lbs import lbs_gaussians
 from renderer.gaussian_renderer import render_predicted_gaussians
+from utils.ply_io_utils import load_gaussians_ply
+
 import time
 
 
@@ -76,8 +79,8 @@ def get_look_at_matrix(eye, target, up):
 def main():
     parser = argparse.ArgumentParser(description="Animate THuman4 Asset (Sanitized Hand Pose)")
 
-    parser.add_argument("--asset_path", type=str, required=True, help="Path to Source .pt asset")
-    parser.add_argument("--raw_data_root", type=str, default="/home/devdoot/workspace/datasets/THuman4.0", help="Root of raw THuman4 dataset")
+    parser.add_argument("--asset_path", type=str, required=True, help="Path to Source .ply asset")
+    parser.add_argument("--raw_data_root", type=str, default="./datasets/THuman4.0", help="Root of raw THuman4 dataset")
     parser.add_argument("--motion_subject", type=str, default="subject00", help="Subject ID to steal motion from")
     parser.add_argument("--smplx_model_path", type=str, default="./body_models/smplx/SMPLX_NEUTRAL.npz")
 
@@ -99,8 +102,8 @@ def main():
 
     # Load Asset
     print(f"Loading Asset: {args.asset_path}")
-    asset = torch.load(args.asset_path, map_location=device, weights_only=True)
-    asset = {k: v.unsqueeze(0).to(device) for k, v in asset.items()}
+    asset = load_gaussians_ply(args.asset_path, device=device)
+    asset = {k: v.unsqueeze(0) for k, v in asset.items()}
 
     # Auto-Zoom
     means = asset['means3D'][0]

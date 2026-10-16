@@ -6,6 +6,7 @@ import argparse
 import math
 from tqdm import tqdm
 from renderer.gaussian_renderer import render_predicted_gaussians
+from utils.ply_io_utils import load_gaussians_ply
 
 
 def get_projection_matrix(znear, zfar, fx, fy, cx, cy, h, w, device):
@@ -45,7 +46,7 @@ def get_look_at_matrix(eye, target, up):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--asset_path", type=str, required=True, help="Path to .pt asset")
+    parser.add_argument("--asset_path", type=str, required=True, help="Path to .ply asset")
     parser.add_argument("--output_video", type=str, default="canonical_spin.mp4")
     parser.add_argument("--h", type=int, default=512)
     parser.add_argument("--w", type=int, default=512)
@@ -57,10 +58,8 @@ def main():
 
     # Load Asset
     print(f"Loading asset: {args.asset_path}")
-    asset = torch.load(args.asset_path, map_location=device, weights_only=True)
-
-    if asset['means3D'].dim() == 2:
-        asset = {k: v.unsqueeze(0).to(device) for k, v in asset.items()}
+    asset = load_gaussians_ply(args.asset_path, device=device)
+    asset = {k: v.unsqueeze(0) for k, v in asset.items()}
 
     means = asset['means3D'][0] # [N, 3]
     print(f"Asset loaded. Gaussians: {means.shape[0]}")
@@ -91,6 +90,7 @@ def main():
     writer = cv2.VideoWriter(args.output_video, fourcc, 30.0, (args.w, args.h))
 
     frames = 120
+    print("Rendering 360 spin...")
 
     for i in tqdm(range(frames)):
         azimuth_deg = 360.0 * (i / frames)
