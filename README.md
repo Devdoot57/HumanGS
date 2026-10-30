@@ -89,18 +89,39 @@ To train the HumanGS model from scratch, execute the training script. By default
 bash train.sh
 ```
 
-## 5. Evaluation & Inference
+## 5. Pre-trained Model
+
+We provide a pre-trained model checkpoint on [Hugging Face](https://huggingface.co/Devdoot57/HumanGS). 
+
+Create the expected directory structure and download the weights:
+```bash
+mkdir -p experiments/checkpoints/HumanGS
+wget https://huggingface.co/Devdoot57/HumanGS/resolve/main/ckpt_best.pt -O experiments/checkpoints/HumanGS/ckpt_best.pt
+```
+
+The expected directory structure is:
+```text
+HumanGS/
+└── experiments/
+    └── checkpoints/
+        └── HumanGS/
+            └── ckpt_best.pt
+```
+
+(If you prefer to store the checkpoint in a custom location, update the `checkpoint_dir` path under the `training:` section inside `configs/HumanGS_config.yaml` before running inference).
+
+## 6. Evaluation & Inference
 
 To run inference and evaluate the model on the generated test splits, execute the evaluation script. This defaults to 1 process.
 ```bash
 bash eval.sh
 ```
 
-## 6. Asset Creation, Visualization & Animation
+## 7. Asset Creation, Visualization & Animation
 
 HumanGS predicts a canonical, animatable 3D Gaussian asset from input images in a single forward pass. The asset is saved as a standard `.ply` file, so it can also be opened in common 3DGS viewers.
 
-### 6.1 Create a Canonical Asset
+### 7.1 Create a Canonical Asset
 
 `create_asset.py` loads the trained checkpoint, takes one subject from the dataset, and saves its canonical Gaussians.
 
@@ -110,7 +131,7 @@ python create_asset.py --config configs/HumanGS_config.yaml --save_dir ./assets 
 
 The asset is written to `<save_dir>/<scene_name>_asset.ply`. The model, dataset, and checkpoint path are read from the same config used for training and evaluation.
 
-### 6.2 Visualize an Asset
+### 7.2 Visualize an Asset
 
 `visualize_asset.py` renders a 360° turntable video of a canonical asset.
 
@@ -118,7 +139,7 @@ The asset is written to `<save_dir>/<scene_name>_asset.ply`. The model, dataset,
 python visualize_asset.py --asset_path ./assets/<scene_name>_asset.ply --output_video canonical_spin.mp4
 ```
 
-### 6.3 Animate an Asset
+### 7.3 Animate an Asset
 
 `animate.py` animates a canonical asset with an SMPL-X motion sequence using linear blend skinning (LBS). The asset is retargeted to the motion skeleton, so any asset can be driven by any motion sequence.
 
